@@ -7,7 +7,7 @@
 #     -f k8s/monitoring/prometheus-stack-values.yaml
 
 grafana:
-  adminPassword: "change-me-in-production"   # Override in CI via --set grafana.adminPassword=...
+  adminPassword: "change-me-in-production"   # Always overridden at deploy time via --set grafana.adminPassword=<GRAFANA_ADMIN_PASSWORD>
   persistence:
     enabled: true
     storageClassName: "oci"    # OKE storage class
