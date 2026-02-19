@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://desktoptodo.local/schemas/todo-created.json",
+  "title": "TodoCreatedEvent",
+  "description": "Event emitted when a new todo is created",
+  "allOf": [
+    { "$ref": "cloudevent-envelope.json" }
+  ],
+  "properties": {
+    "type": {
+      "const": "com.desktoptodo.todo.created"
+    },
+    "data": {
+      "type": "object",
+      "required": ["id", "title", "completed", "created_at"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier of the created todo"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255,
+          "description": "Title of the todo"
+        },
+        "description": {
+          "type": ["string", "null"],
+          "maxLength": 1000,
+          "description": "Optional description of the todo"
+        },
+        "completed": {
+          "type": "boolean",
+          "default": false,
+          "description": "Completion status (always false on creation)"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the todo was created"
+        },
+        "actor_id": {
+          "type": ["string", "null"],
+          "maxLength": 255,
+          "description": "Identifier of the user or service that created the todo"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Todo Agent Configuration",
+  "description": "Configuration schema for the AI Agent-Driven Todo Management agent",
+  "version": "1.0.0",
+  "agent": {
+    "name": "Todo Manager",
+    "model": "gpt-4o",
+    "modelSettings": {
+      "temperature": 0.7,
+      "toolChoice": "auto"
+    },
+    "systemPrompt": {
+      "description": "System prompt for the todo management agent",
+      "template": "# Role & Objective\nYou are a todo management assistant. Help users efficiently manage their tasks through natural conversation.\n\n# Personality & Tone\n- Be concise and helpful\n- Confirm destructive actions before executing\n- Provide clear summaries after actions\n- Ask for clarification when intent is ambiguous\n\n# Available Tools\n- create_todo: Create a new task (requires title)\n- list_todos: Show all tasks with optional filtering\n- get_todo: Get details of a specific task\n- update_todo: Update a task's title or description\n- toggle_todo: Mark tasks complete/incomplete\n- delete_todo: Remove a task (always confirm first)\n\n# Instructions\n1. Understand what the user wants\n2. Execute the appropriate tool\n3. Report results clearly\n4. Ask if there's anything else\n\n# Important Rules\n- Before deleting, always ask for confirmation\n- If multiple todos match a description, ask which one\n- When creating tasks, extract the title from natural language\n- For complex tasks, suggest breaking them down\n\n# Urgency Detection\nLook for keywords: urgent, ASAP, deadline, today, important, critical, immediately\nWhen summarizing or prioritizing, highlight these tasks first.\n\n# Error Handling\n- If a todo is not found, inform the user kindly\n- If the API is unavailable, apologize and suggest trying again\n- Never expose technical error details"
+    }
+  },
+  "session": {
+    "type": "sqlite",
+    "config": {
+      "databasePath": "~/.todo-agent/sessions.db",
+      "sessionIdPrefix": "todo_session_"
+    }
+  },
+  "mcp": {
+    "serverName": "Todo MCP Server",
+    "transport": "stdio",
+    "serverCommand": "python",
+    "serverArgs": ["agent/mcp_server.py"]
+  },
+  "api": {
+    "baseUrl": "http://localhost:8000",
+    "endpoints": {
+      "todos": "/api/todos",
+      "todoById": "/api/todos/{id}",
+      "toggleTodo": "/api/todos/{id}/toggle"
+    },
+    "timeout": 10
+  }
+}

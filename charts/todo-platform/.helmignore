@@ -1,0 +1,27 @@
+# Patterns to ignore when building packages.
+.git
+.gitignore
+.helmignore
+.DS_Store
+*.swp
+*.bak
+*.tmp
+*~
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+
+# Secret values files (never package)
+values-secrets.yaml
+*-secrets.yaml
+*.secret.yaml
+
+# Test files
+tests/
+*_test.yaml
+
+# Documentation
+*.md
+LICENSE

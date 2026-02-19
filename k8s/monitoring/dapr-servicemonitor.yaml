@@ -1,0 +1,45 @@
+# Prometheus ServiceMonitor for Dapr sidecar metrics
+# Scrapes /metrics on port 9090 from all pods with Dapr sidecar in the todo namespace.
+# Requires: kube-prometheus-stack installed with serviceMonitorSelector: {}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: dapr-sidecar-metrics
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  namespaceSelector:
+    matchNames:
+      - todo
+      - dapr-system
+  selector:
+    matchLabels:
+      dapr.io/metrics: "true"
+  endpoints:
+    - port: dapr-metrics
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+
+---
+# Dapr system components ServiceMonitor (dapr-system namespace)
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: dapr-system-metrics
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  namespaceSelector:
+    matchNames:
+      - dapr-system
+  selector:
+    matchLabels:
+      app.kubernetes.io/part-of: dapr
+  endpoints:
+    - port: metrics
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s

@@ -1,0 +1,47 @@
+# Git
+.git
+.gitignore
+
+# Node
+node_modules
+.next
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+venv
+.venv
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project artifacts
+specs
+history
+docs
+charts
+k8s
+scripts
+.specify
+.spec-kit
+.claude
+*.md
+!README.md
+
+# Build artifacts
+*.log
+coverage
+.pytest_cache

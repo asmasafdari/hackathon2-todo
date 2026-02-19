@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Health Check Endpoint Contracts",
+  "description": "Health check endpoint specifications for Kubernetes probes",
+  "version": "1.0.0",
+  "endpoints": [
+    {
+      "service": "backend",
+      "path": "/health",
+      "method": "GET",
+      "description": "FastAPI backend health check",
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["healthy", "unhealthy"],
+            "description": "Overall service health status"
+          },
+          "service": {
+            "type": "string",
+            "const": "backend",
+            "description": "Service identifier"
+          },
+          "version": {
+            "type": "string",
+            "description": "Application version"
+          },
+          "database": {
+            "type": "string",
+            "enum": ["connected", "disconnected"],
+            "description": "Database connection status"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Health check timestamp"
+          }
+        },
+        "required": ["status", "service"]
+      },
+      "successCodes": [200],
+      "failureCodes": [503],
+      "timeout": "5s",
+      "examples": {
+        "healthy": {
+          "status": "healthy",
+          "service": "backend",
+          "version": "1.0.0",
+          "database": "connected",
+          "timestamp": "2026-01-22T12:00:00Z"
+        },
+        "unhealthy": {
+          "status": "unhealthy",
+          "service": "backend",
+          "version": "1.0.0",
+          "database": "disconnected",
+          "timestamp": "2026-01-22T12:00:00Z"
+        }
+      }
+    },
+    {
+      "service": "frontend",
+      "path": "/",
+      "method": "GET",
+      "description": "Next.js frontend health check (serves HTML page)",
+      "responseSchema": {
+        "type": "string",
+        "contentType": "text/html",
+        "description": "HTML content indicating page rendered successfully"
+      },
+      "successCodes": [200],
+      "failureCodes": [500, 502, 503],
+      "timeout": "10s",
+      "notes": "Next.js standalone server returns the index page. Any 2xx response indicates healthy."
+    },
+    {
+      "service": "mcp",
+      "path": "/health",
+      "method": "GET",
+      "description": "MCP server health check",
+      "responseSchema": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["healthy", "unhealthy"],
+            "description": "Overall service health status"
+          },
+          "service": {
+            "type": "string",
+            "const": "mcp-server",
+            "description": "Service identifier"
+          },
+          "version": {
+            "type": "string",
+            "description": "Application version"
+          },
+          "backend_reachable": {
+            "type": "boolean",
+            "description": "Whether the backend API is reachable"
+          }
+        },
+        "required": ["status", "service"]
+      },
+      "successCodes": [200],
+      "failureCodes": [503],
+      "timeout": "5s",
+      "examples": {
+        "healthy": {
+          "status": "healthy",
+          "service": "mcp-server",
+          "version": "0.1.0",
+          "backend_reachable": true
+        }
+      }
+    }
+  ],
+  "probeConfiguration": {
+    "liveness": {
+      "description": "Determines if the container should be restarted",
+      "defaults": {
+        "initialDelaySeconds": 15,
+        "periodSeconds": 20,
+        "timeoutSeconds": 5,
+        "failureThreshold": 3,
+        "successThreshold": 1
+      }
+    },
+    "readiness": {
+      "description": "Determines if the container can receive traffic",
+      "defaults": {
+        "initialDelaySeconds": 5,
+        "periodSeconds": 10,
+        "timeoutSeconds": 5,
+        "failureThreshold": 3,
+        "successThreshold": 1
+      }
+    },
+    "startup": {
+      "description": "Determines if the application has started (disables liveness/readiness until success)",
+      "defaults": {
+        "initialDelaySeconds": 0,
+        "periodSeconds": 10,
+        "timeoutSeconds": 5,
+        "failureThreshold": 30,
+        "successThreshold": 1
+      }
+    }
+  }
+}

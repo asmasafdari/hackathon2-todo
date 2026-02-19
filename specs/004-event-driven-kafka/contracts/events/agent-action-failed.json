@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://desktoptodo.local/schemas/agent-action-failed.json",
+  "title": "AgentActionFailedEvent",
+  "description": "Event emitted when an AI agent action fails",
+  "allOf": [
+    { "$ref": "cloudevent-envelope.json" }
+  ],
+  "properties": {
+    "type": {
+      "const": "com.desktoptodo.agent.action.failed"
+    },
+    "data": {
+      "type": "object",
+      "required": ["action_id", "agent_id", "tool_name", "tool_input", "error_type", "error_message", "failed_at"],
+      "properties": {
+        "action_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this action attempt"
+        },
+        "agent_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Identifier of the AI agent that attempted the action"
+        },
+        "tool_name": {
+          "type": "string",
+          "enum": ["create_todo", "update_todo", "delete_todo", "toggle_todo", "list_todos", "get_todo"],
+          "description": "Name of the MCP tool that failed"
+        },
+        "tool_input": {
+          "type": "object",
+          "description": "Input parameters passed to the tool"
+        },
+        "error_type": {
+          "type": "string",
+          "description": "Classification of the error (e.g., ValidationError, NotFoundError, NetworkError)"
+        },
+        "error_message": {
+          "type": "string",
+          "description": "Human-readable error message"
+        },
+        "failed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the failure occurred"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

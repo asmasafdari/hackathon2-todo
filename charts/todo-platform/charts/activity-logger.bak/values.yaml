@@ -1,0 +1,37 @@
+# Default values for activity-logger subchart
+
+enabled: true
+
+replicaCount: 1
+
+image:
+  repository: todo-activity-logger
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8081
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+healthCheck:
+  path: /health
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+# Dapr sidecar configuration
+dapr:
+  enabled: false
+  logLevel: info
+  sidecar:
+    cpuLimit: 300m
+    memoryLimit: 256Mi

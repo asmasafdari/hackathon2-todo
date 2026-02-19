@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://desktoptodo.local/schemas/agent-action-executed.json",
+  "title": "AgentActionExecutedEvent",
+  "description": "Event emitted when an AI agent successfully executes a tool",
+  "allOf": [
+    { "$ref": "cloudevent-envelope.json" }
+  ],
+  "properties": {
+    "type": {
+      "const": "com.desktoptodo.agent.action.executed"
+    },
+    "data": {
+      "type": "object",
+      "required": ["action_id", "agent_id", "tool_name", "tool_input", "tool_output", "executed_at", "duration_ms"],
+      "properties": {
+        "action_id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier for this action execution"
+        },
+        "agent_id": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Identifier of the AI agent that executed the action"
+        },
+        "tool_name": {
+          "type": "string",
+          "enum": ["create_todo", "update_todo", "delete_todo", "toggle_todo", "list_todos", "get_todo"],
+          "description": "Name of the MCP tool that was executed"
+        },
+        "tool_input": {
+          "type": "object",
+          "description": "Input parameters passed to the tool"
+        },
+        "tool_output": {
+          "type": "object",
+          "description": "Output returned by the tool",
+          "properties": {
+            "success": {
+              "type": "boolean"
+            }
+          }
+        },
+        "entity_id": {
+          "type": ["string", "null"],
+          "format": "uuid",
+          "description": "ID of the affected todo (if applicable)"
+        },
+        "executed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the action completed"
+        },
+        "duration_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Execution time in milliseconds"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

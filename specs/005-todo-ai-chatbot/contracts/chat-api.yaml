@@ -1,0 +1,196 @@
+openapi: "3.1.0"
+info:
+  title: Todo AI Chatbot API
+  version: "1.0.0"
+  description: Chat endpoints for AI-powered todo management
+
+paths:
+  /api/{user_id}/chat:
+    post:
+      operationId: chat
+      summary: Send a chat message and get AI response
+      description: |
+        Stateless endpoint. Fetches conversation history from database,
+        processes through AI agent with MCP tools, stores messages,
+        returns response.
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChatRequest"
+      responses:
+        "200":
+          description: AI response with tool call details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChatResponse"
+        "404":
+          description: Conversation not found
+        "403":
+          description: Access denied (conversation belongs to another user)
+        "500":
+          description: AI processing error
+      security:
+        - clerkAuth: []
+
+  /api/{user_id}/conversations:
+    get:
+      operationId: listConversations
+      summary: List all conversations for a user
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of conversations with message counts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConversationRead"
+      security:
+        - clerkAuth: []
+
+  /api/{user_id}/conversations/{conversation_id}/messages:
+    get:
+      operationId: getConversationMessages
+      summary: Get messages in a conversation
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: conversation_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: List of messages
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MessageRead"
+        "404":
+          description: Conversation not found
+        "403":
+          description: Access denied
+      security:
+        - clerkAuth: []
+
+components:
+  securitySchemes:
+    clerkAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    ChatRequest:
+      type: object
+      required:
+        - message
+      properties:
+        conversation_id:
+          type: string
+          format: uuid
+          description: Existing conversation ID (creates new if omitted)
+        message:
+          type: string
+          description: User's natural language message
+
+    ChatResponse:
+      type: object
+      required:
+        - conversation_id
+        - response
+      properties:
+        conversation_id:
+          type: string
+          format: uuid
+        response:
+          type: string
+          description: AI assistant's response text
+        tool_calls:
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/ToolCall"
+
+    ToolCall:
+      type: object
+      properties:
+        tool:
+          type: string
+          enum: [add_task, list_tasks, complete_task, delete_task, update_task]
+        parameters:
+          type: object
+        result:
+          type: object
+
+    ConversationRead:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        title:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        message_count:
+          type: integer
+
+    MessageRead:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        conversation_id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [user, assistant, system]
+        content:
+          type: string
+        tool_calls:
+          type: array
+          nullable: true
+          items:
+            $ref: "#/components/schemas/ToolCall"
+        created_at:
+          type: string
+          format: date-time

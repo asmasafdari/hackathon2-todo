@@ -15,6 +15,7 @@ class Task:
     """Represents a single task."""
     id: int
     title: str
+    description: str = ""
     status: Status = Status.PENDING
     created_at: datetime = field(default_factory=datetime.now)
 
@@ -32,13 +33,24 @@ class TaskManager:
         self._tasks: list[Task] = []
         self._next_id: int = 1
 
-    def add_task(self, title: str) -> Task:
-        """Add a new task with the given title."""
+    def add_task(self, title: str, description: str = "") -> Task:
+        """Add a new task with the given title and description."""
         if not title.strip():
             raise ValueError("Task title cannot be empty")
-        task = Task(id=self._next_id, title=title.strip())
+        task = Task(id=self._next_id, title=title.strip(), description=description.strip())
         self._tasks.append(task)
         self._next_id += 1
+        return task
+
+    def update_task(self, task_id: int, title: str | None = None, description: str | None = None) -> Task:
+        """Update a task's title and/or description."""
+        task = self.get_task(task_id)
+        if title is not None:
+            if not title.strip():
+                raise ValueError("Task title cannot be empty")
+            task.title = title.strip()
+        if description is not None:
+            task.description = description.strip()
         return task
 
     def get_task(self, task_id: int) -> Task:
@@ -75,14 +87,16 @@ def print_table(tasks: list[Task]) -> None:
 
     # Table header
     print()
-    print(f"{'ID':<5} {'Status':<12} {'Title':<40} {'Created':<20}")
-    print("-" * 77)
+    print(f"{'ID':<5} {'Status':<8} {'Title':<30} {'Description':<25} {'Created':<16}")
+    print("-" * 84)
 
     # Table rows
     for task in tasks:
         status_icon = "[x]" if task.status == Status.COMPLETED else "[ ]"
         created = task.created_at.strftime("%Y-%m-%d %H:%M")
-        print(f"{task.id:<5} {status_icon:<12} {task.title:<40} {created:<20}")
+        title = task.title[:28] + ".." if len(task.title) > 30 else task.title
+        desc = task.description[:23] + ".." if len(task.description) > 25 else task.description
+        print(f"{task.id:<5} {status_icon:<8} {title:<30} {desc:<25} {created:<16}")
 
     print()
 
@@ -94,9 +108,10 @@ def print_menu() -> None:
     print("=" * 40)
     print("  1. List all tasks")
     print("  2. Add a new task")
-    print("  3. Toggle task completion")
-    print("  4. Delete a task")
-    print("  5. Exit")
+    print("  3. Update a task")
+    print("  4. Toggle task completion")
+    print("  5. Delete a task")
+    print("  6. Exit")
     print("=" * 40)
 
 
@@ -114,7 +129,7 @@ def main() -> None:
 
     while True:
         print_menu()
-        choice = get_input("Select an option (1-5): ")
+        choice = get_input("Select an option (1-6): ")
 
         if choice == "1":
             print_table(manager.list_tasks())
@@ -124,13 +139,38 @@ def main() -> None:
             if not title:
                 print("\n  Error: Task title cannot be empty.\n")
                 continue
+            description = get_input("Enter task description (optional): ")
             try:
-                task = manager.add_task(title)
+                task = manager.add_task(title, description)
                 print(f"\n  Task #{task.id} added successfully.\n")
             except ValueError as e:
                 print(f"\n  Error: {e}\n")
 
         elif choice == "3":
+            task_id_str = get_input("Enter task ID to update: ")
+            if not task_id_str:
+                print("\n  Error: Task ID cannot be empty.\n")
+                continue
+            try:
+                task_id = int(task_id_str)
+                task = manager.get_task(task_id)
+                print(f"\n  Current title: {task.title}")
+                print(f"  Current description: {task.description or '(none)'}\n")
+                new_title = get_input("Enter new title (press Enter to keep current): ")
+                new_desc = get_input("Enter new description (press Enter to keep current): ")
+                manager.update_task(
+                    task_id,
+                    title=new_title if new_title else None,
+                    description=new_desc if new_desc else None
+                )
+                print(f"\n  Task #{task_id} updated successfully.\n")
+            except ValueError as e:
+                if "invalid literal" in str(e):
+                    print("\n  Error: Please enter a valid number.\n")
+                else:
+                    print(f"\n  Error: {e}\n")
+
+        elif choice == "4":
             task_id_str = get_input("Enter task ID to toggle: ")
             if not task_id_str:
                 print("\n  Error: Task ID cannot be empty.\n")
@@ -146,7 +186,7 @@ def main() -> None:
                 else:
                     print(f"\n  Error: {e}\n")
 
-        elif choice == "4":
+        elif choice == "5":
             task_id_str = get_input("Enter task ID to delete: ")
             if not task_id_str:
                 print("\n  Error: Task ID cannot be empty.\n")
@@ -161,12 +201,12 @@ def main() -> None:
                 else:
                     print(f"\n  Error: {e}\n")
 
-        elif choice == "5":
+        elif choice == "6":
             print("\n  Goodbye!\n")
             break
 
         else:
-            print("\n  Invalid option. Please select 1-5.\n")
+            print("\n  Invalid option. Please select 1-6.\n")
 
 
 if __name__ == "__main__":

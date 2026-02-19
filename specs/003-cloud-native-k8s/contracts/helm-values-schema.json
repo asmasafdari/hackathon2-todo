@@ -1,0 +1,307 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Todo Platform Helm Values",
+  "description": "JSON Schema for todo-platform Helm chart values.yaml",
+  "type": "object",
+  "properties": {
+    "global": {
+      "type": "object",
+      "description": "Global settings applied to all subcharts",
+      "properties": {
+        "namespace": {
+          "type": "string",
+          "default": "todo",
+          "description": "Kubernetes namespace for all resources"
+        },
+        "imageTag": {
+          "type": "string",
+          "default": "latest",
+          "description": "Default image tag for all containers"
+        },
+        "imagePullPolicy": {
+          "type": "string",
+          "enum": ["Always", "IfNotPresent", "Never"],
+          "default": "IfNotPresent"
+        }
+      }
+    },
+    "backend": {
+      "type": "object",
+      "description": "FastAPI backend service configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "replicas": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": {
+              "type": "string",
+              "default": "todo-backend"
+            },
+            "tag": {
+              "type": "string",
+              "default": ""
+            }
+          }
+        },
+        "service": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["ClusterIP", "NodePort", "LoadBalancer"],
+              "default": "ClusterIP"
+            },
+            "port": {
+              "type": "integer",
+              "default": 8000
+            }
+          }
+        },
+        "resources": {
+          "$ref": "#/$defs/resources"
+        },
+        "healthCheck": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "default": "/health"
+            },
+            "initialDelaySeconds": {
+              "type": "integer",
+              "default": 10
+            },
+            "periodSeconds": {
+              "type": "integer",
+              "default": 10
+            }
+          }
+        }
+      }
+    },
+    "frontend": {
+      "type": "object",
+      "description": "Next.js frontend service configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "replicas": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": {
+              "type": "string",
+              "default": "todo-frontend"
+            },
+            "tag": {
+              "type": "string",
+              "default": ""
+            }
+          }
+        },
+        "service": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["ClusterIP", "NodePort", "LoadBalancer"],
+              "default": "ClusterIP"
+            },
+            "port": {
+              "type": "integer",
+              "default": 3000
+            }
+          }
+        },
+        "resources": {
+          "$ref": "#/$defs/resources"
+        },
+        "env": {
+          "type": "object",
+          "properties": {
+            "apiUrl": {
+              "type": "string",
+              "description": "Backend API URL for the frontend",
+              "default": "http://backend:8000"
+            }
+          }
+        }
+      }
+    },
+    "mcp": {
+      "type": "object",
+      "description": "MCP server (AI tool gateway) configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "replicas": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        },
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": {
+              "type": "string",
+              "default": "todo-mcp"
+            },
+            "tag": {
+              "type": "string",
+              "default": ""
+            }
+          }
+        },
+        "service": {
+          "type": "object",
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": ["ClusterIP", "NodePort", "LoadBalancer"],
+              "default": "ClusterIP"
+            },
+            "port": {
+              "type": "integer",
+              "default": 8080
+            }
+          }
+        },
+        "resources": {
+          "$ref": "#/$defs/resources"
+        },
+        "healthCheck": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "default": "/health"
+            }
+          }
+        }
+      }
+    },
+    "secrets": {
+      "type": "object",
+      "description": "Sensitive configuration (provide via --set or separate values file)",
+      "properties": {
+        "databaseUrl": {
+          "type": "string",
+          "description": "PostgreSQL connection string for Neon"
+        },
+        "openaiApiKey": {
+          "type": "string",
+          "description": "OpenAI API key for MCP server"
+        }
+      },
+      "required": ["databaseUrl", "openaiApiKey"]
+    },
+    "config": {
+      "type": "object",
+      "description": "Non-sensitive configuration",
+      "properties": {
+        "logLevel": {
+          "type": "string",
+          "enum": ["DEBUG", "INFO", "WARNING", "ERROR"],
+          "default": "INFO"
+        },
+        "corsOrigins": {
+          "type": "string",
+          "default": "*",
+          "description": "Comma-separated list of allowed CORS origins"
+        }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "description": "Ingress configuration for external access",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": true
+        },
+        "className": {
+          "type": "string",
+          "default": "nginx"
+        },
+        "host": {
+          "type": "string",
+          "default": "",
+          "description": "Hostname (empty for any host)"
+        },
+        "annotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "tls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "secretName": {
+                "type": "string"
+              },
+              "hosts": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "resources": {
+      "type": "object",
+      "description": "Kubernetes resource requests and limits",
+      "properties": {
+        "requests": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "type": "string",
+              "default": "100m"
+            },
+            "memory": {
+              "type": "string",
+              "default": "128Mi"
+            }
+          }
+        },
+        "limits": {
+          "type": "object",
+          "properties": {
+            "cpu": {
+              "type": "string",
+              "default": "500m"
+            },
+            "memory": {
+              "type": "string",
+              "default": "512Mi"
+            }
+          }
+        }
+      }
+    }
+  }
+}

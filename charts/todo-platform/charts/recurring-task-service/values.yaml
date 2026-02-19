@@ -1,0 +1,32 @@
+replicaCount: 1
+image:
+  repository: todo-recurring-task-service
+  tag: ""
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 8083
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+healthCheck:
+  path: /health
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+dapr:
+  enabled: true
+  appId: "recurring-task-service"
+  appPort: "8083"
+  logLevel: "info"
+  sidecar:
+    cpuLimit: "200m"
+    memoryLimit: "128Mi"
+global:
+  imageTag: latest
+  imagePullPolicy: IfNotPresent

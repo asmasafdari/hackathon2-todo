@@ -1,0 +1,72 @@
+# Default values for todo-chatbot chart
+
+replicaCount: 1
+
+namespace: todo-chatbot
+
+backend:
+  enabled: true
+  name: backend
+  image:
+    repository: todo-chatbot-backend
+    tag: latest
+    pullPolicy: Never
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  healthCheck:
+    path: /health
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  env:
+    appEnv: production
+    logLevel: INFO
+
+frontend:
+  enabled: true
+  name: frontend
+  image:
+    repository: todo-chatbot-frontend
+    tag: latest
+    pullPolicy: Never
+  service:
+    type: ClusterIP
+    port: 3000
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "256Mi"
+      cpu: "200m"
+  healthCheck:
+    path: /
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  env:
+    apiUrl: "http://backend:8000"
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+  host: ""
+
+database:
+  enabled: false
+  url: ""
+
+secrets:
+  openaiApiKey: ""
+  clerkSecretKey: ""
+  clerkPublishableKey: ""
+  clerkDomain: ""

@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "speckit": {
+      "command": "python",
+      "args": ["scripts/speckit_mcp/server.py"],
+      "env": {}
+    }
+  }
+}

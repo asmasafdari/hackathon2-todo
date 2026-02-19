@@ -1,0 +1,24 @@
+# Python
+__pycache__
+*.pyc
+*.pyo
+.pytest_cache
+venv
+.venv
+
+# Environment
+.env
+.env.*
+
+# Tests (included in image for now, can exclude if image size matters)
+# tests/
+
+# IDE
+.vscode
+.idea
+
+# Build artifacts
+*.log
+coverage
+htmlcov
+.mypy_cache

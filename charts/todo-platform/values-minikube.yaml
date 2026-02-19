@@ -1,0 +1,304 @@
+# Minikube-specific values for Todo Platform with Full Dapr
+# This configuration enables all Dapr building blocks:
+# - Pub/Sub (Kafka or Redis)
+# - State Store (Redis)
+# - Bindings (Cron)
+# - Secrets (Kubernetes)
+# - Service Invocation (mTLS, Resiliency)
+
+global:
+  namespace: todo
+  imageTag: latest
+  imagePullPolicy: Never  # Use locally built images in Minikube
+
+# Backend service configuration with Dapr sidecar
+backend:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: todo-backend
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  healthCheck:
+    path: /api/health
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 10
+  # Dapr sidecar annotations
+  podAnnotations:
+    dapr.io/enabled: "true"
+    dapr.io/app-id: "todo-backend"
+    dapr.io/app-port: "8000"
+    dapr.io/log-level: "info"
+    dapr.io/config: "todo-config"
+    dapr.io/metrics-port: "9090"
+
+# Frontend service configuration
+frontend:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: todo-frontend
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 3000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  healthCheck:
+    path: /
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+  # Dapr sidecar annotations for service invocation
+  podAnnotations:
+    dapr.io/enabled: "true"
+    dapr.io/app-id: "todo-frontend"
+    dapr.io/app-port: "3000"
+    dapr.io/log-level: "info"
+    dapr.io/config: "todo-config"
+
+# MCP server configuration (AI Agent) - Disabled by default
+mcp:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: todo-mcp
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 8080
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  podAnnotations:
+    dapr.io/enabled: "true"
+    dapr.io/app-id: "mcp-server"
+    dapr.io/app-port: "8080"
+    dapr.io/log-level: "info"
+    dapr.io/config: "todo-config"
+
+# Activity Logger service configuration - Disabled by default
+activityLogger:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: todo-activity-logger
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 8081
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  podAnnotations:
+    dapr.io/enabled: "true"
+    dapr.io/app-id: "activity-logger"
+    dapr.io/app-port: "8081"
+    dapr.io/log-level: "info"
+    dapr.io/config: "todo-config"
+
+# Configuration (non-sensitive)
+config:
+  logLevel: INFO
+  corsOrigins: "*"
+  backendUrl: "http://todo-backend-dapr:8000"  # Use Dapr service invocation
+  # Dapr-specific configuration
+  dapr:
+    httpPort: 3500
+    grpcPort: 50001
+
+# Secrets (populated by deployment script)
+secrets:
+  databaseUrl: "sqlite+aiosqlite:///tmp/todos.db"
+  openaiApiKey: ""
+
+# Ingress configuration (using Minikube ingress addon)
+ingress:
+  enabled: true
+  className: nginx
+  host: ""  # Empty for local development
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+  tls: []
+
+# =============================================================================
+# Dapr Configuration - Full Feature Set
+# =============================================================================
+
+dapr:
+  # Enable Dapr globally
+  enabled: true
+  logLevel: "info"
+  
+  # ---------------------------------------------------------------------------
+  # Pub/Sub Configuration (using Redis for Minikube)
+  # ---------------------------------------------------------------------------
+  pubsub:
+    enabled: true
+    type: "redis"  # Options: kafka, redis
+    name: "todo-pubsub"
+    # Redis configuration (when using Redis pub/sub)
+    redis:
+      host: "redis-master:6379"
+      secretName: "redis"
+      secretKey: "redis-password"
+    # Kafka configuration (alternative)
+    kafka:
+      brokers: "kafka:9092"
+      authType: "none"
+      consumerGroup: "todo-platform"
+      maxMessageBytes: "1048576"
+    # Service scopes
+    scopes:
+      - todo-backend
+      - activity-logger
+      - mcp-server
+  
+  # ---------------------------------------------------------------------------
+  # State Store Configuration (Redis)
+  # ---------------------------------------------------------------------------
+  stateStore:
+    enabled: true
+    type: "redis"  # Options: redis, postgresql
+    name: "todo-state-store"
+    # Redis configuration
+    redis:
+      host: "redis-master:6379"
+      secretName: "redis"
+      secretKey: "redis-password"
+    # PostgreSQL configuration (alternative)
+    postgresql:
+      connectionString: ""
+    # Service scopes
+    scopes:
+      - todo-backend
+      - activity-logger
+      - mcp-server
+  
+  # ---------------------------------------------------------------------------
+  # Bindings Configuration (Cron)
+  # ---------------------------------------------------------------------------
+  bindings:
+    cron:
+      enabled: true
+      name: "todo-cron-binding"
+      # Default cron schedule (every minute)
+      schedule: "@every 1m"
+      direction: "input"
+      scopes:
+        - todo-backend
+      # Additional cron jobs
+      jobs: []
+      # Example additional jobs:
+      # - name: "daily-cleanup"
+      #   schedule: "0 0 * * *"  # Daily at midnight
+      #   targetService: "todo-backend"
+      #   direction: "input"
+  
+  # ---------------------------------------------------------------------------
+  # Secrets Store Configuration (Kubernetes)
+  # ---------------------------------------------------------------------------
+  secrets:
+    enabled: true
+    type: "kubernetes"  # Options: kubernetes, local
+    name: "todo-kubernetes-secrets"
+    # Local file configuration (when type=local)
+    local:
+      filePath: "/components/secrets.json"
+    # Service scopes
+    scopes:
+      - todo-backend
+      - activity-logger
+      - mcp-server
+  
+  # ---------------------------------------------------------------------------
+  # Configuration Resource (Tracing, mTLS, Metrics)
+  # ---------------------------------------------------------------------------
+  configuration:
+    enabled: true
+    name: "todo-config"
+    # Distributed tracing
+    tracing:
+      samplingRate: "1"
+      zipkin:
+        endpoint: "http://zipkin.dapr-system.svc.cluster.local:9411/api/v2/spans"
+    # mTLS for secure service-to-service communication
+    mtls:
+      enabled: true
+      workloadCertTTL: "24h"
+      allowedClockSkew: "15m"
+    # Metrics collection
+    metrics:
+      enabled: true
+    # Access control policies
+    accessControl:
+      enabled: false
+      defaultAction: "allow"
+      trustDomain: "public"
+      policies: []
+  
+  # ---------------------------------------------------------------------------
+  # Resiliency Configuration (Retries, Timeouts, Circuit Breakers)
+  # ---------------------------------------------------------------------------
+  resiliency:
+    enabled: true
+    name: "todo-resiliency"
+    # Retry policy
+    retryPolicy:
+      name: "retry-policy"
+      type: "constant"  # constant, exponential, linear
+      duration: "5s"
+      maxRetries: 3
+    # Timeout policy
+    timeout:
+      name: "general-timeout"
+      duration: "30s"
+    # Circuit breaker policy
+    circuitBreaker:
+      name: "circuit-breaker"
+      maxRequests: 1
+      interval: "10s"
+      timeout: "5s"
+      failureThreshold: 5
+
+# =============================================================================
+# Kafka Configuration (when using Kafka for pub/sub)
+# =============================================================================
+
+kafka:
+  enabled: false  # Set to true to use Kafka instead of Redis
+  brokers: "kafka:9092"
+  authType: "none"
+  consumerGroup: "todo-platform"
+  maxMessageBytes: "1048576"
+  topics:
+    - todo-created
+    - todo-updated
+    - todo-deleted
+    - todo-completed

@@ -1,0 +1,29 @@
+apiVersion: dapr.io/v1alpha1
+kind: Resiliency
+metadata:
+  name: todo-resiliency
+  namespace: todo
+spec:
+  policies:
+    retries:
+      retryThrice:
+        policy: constant
+        maxRetries: 3
+        duration: 2s
+    circuitBreakers:
+      backendCB:
+        maxRequests: 1
+        interval: 30s
+        timeout: 60s
+        trip: consecutiveFailures > 3
+    timeouts:
+      generalTimeout: 30s
+  targets:
+    apps:
+      todo-backend:
+        retry: retryThrice
+        circuitBreaker: backendCB
+        timeout: generalTimeout
+      activity-logger:
+        retry: retryThrice
+        timeout: generalTimeout

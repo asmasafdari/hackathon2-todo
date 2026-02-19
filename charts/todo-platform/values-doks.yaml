@@ -1,0 +1,74 @@
+# DigitalOcean Kubernetes (DOKS) Specific Values
+# These values override the defaults for production deployment on DOKS
+
+global:
+  imageTag: latest
+  imagePullPolicy: Always
+
+backend:
+  image:
+    repository: registry.digitalocean.com/todo-registry/todo-backend
+    tag: latest
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+frontend:
+  image:
+    repository: registry.digitalocean.com/todo-registry/todo-frontend
+    tag: latest
+  replicaCount: 2
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+mcp:
+  image:
+    repository: registry.digitalocean.com/todo-registry/todo-mcp
+    tag: latest
+  replicaCount: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+activityLogger:
+  enabled: false
+  image:
+    repository: registry.digitalocean.com/todo-registry/todo-activity-logger
+    tag: latest
+  replicaCount: 1
+
+# Ingress configuration for DOKS
+ingress:
+  enabled: true
+  className: nginx
+  host: ""  # Will be configured with external IP
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+  tls:
+    - secretName: todo-platform-tls
+      hosts:
+        - ""  # Will be filled with actual domain
+
+# Dapr configuration
+dapr:
+  enabled: false  # Disable Dapr for initial deployment
+  
+# Kafka disabled for now
+kafka:
+  enabled: false

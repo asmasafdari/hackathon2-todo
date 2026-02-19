@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://desktoptodo.local/schemas/todo-deleted.json",
+  "title": "TodoDeletedEvent",
+  "description": "Event emitted when a todo is deleted",
+  "allOf": [
+    { "$ref": "cloudevent-envelope.json" }
+  ],
+  "properties": {
+    "type": {
+      "const": "com.desktoptodo.todo.deleted"
+    },
+    "data": {
+      "type": "object",
+      "required": ["id", "title", "deleted_at"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier of the deleted todo"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 255,
+          "description": "Title of the deleted todo (for audit purposes)"
+        },
+        "deleted_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the todo was deleted"
+        },
+        "actor_id": {
+          "type": ["string", "null"],
+          "maxLength": 255,
+          "description": "Identifier of the user or service that deleted the todo"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

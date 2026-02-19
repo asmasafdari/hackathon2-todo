@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: activity-logger
+  labels:
+    app: activity-logger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: activity-logger
+  template:
+    metadata:
+      labels:
+        app: activity-logger
+    spec:
+      containers:
+      - name: activity-logger
+        image: todo-activity-logger:latest
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 8081
+        env:
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: todo-secrets
+              key: database-url
+        - name: KAFKA_BROKERS
+          value: "kafka:9092"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8081
+          initialDelaySeconds: 10
+          periodSeconds: 10

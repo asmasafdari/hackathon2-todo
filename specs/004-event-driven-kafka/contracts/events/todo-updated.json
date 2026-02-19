@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://desktoptodo.local/schemas/todo-updated.json",
+  "title": "TodoUpdatedEvent",
+  "description": "Event emitted when a todo is updated (title or description changed)",
+  "allOf": [
+    { "$ref": "cloudevent-envelope.json" }
+  ],
+  "properties": {
+    "type": {
+      "const": "com.desktoptodo.todo.updated"
+    },
+    "data": {
+      "type": "object",
+      "required": ["id", "changes", "previous", "updated_at"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier of the updated todo"
+        },
+        "changes": {
+          "type": "object",
+          "description": "Object containing only the changed fields with new values",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 255
+            },
+            "description": {
+              "type": ["string", "null"],
+              "maxLength": 1000
+            }
+          },
+          "additionalProperties": false
+        },
+        "previous": {
+          "type": "object",
+          "description": "Object containing previous values of the changed fields",
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "description": {
+              "type": ["string", "null"]
+            }
+          },
+          "additionalProperties": false
+        },
+        "updated_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Timestamp when the update occurred"
+        },
+        "actor_id": {
+          "type": ["string", "null"],
+          "maxLength": 255,
+          "description": "Identifier of the user or service that performed the update"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

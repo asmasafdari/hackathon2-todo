@@ -1,0 +1,94 @@
+# MCP Tools Contract
+# These are the tools exposed by the MCP server for the AI agent
+# File: agent/mcp_server.py (already implemented)
+
+tools:
+  - name: add_task
+    description: Create a new task
+    parameters:
+      user_id:
+        type: string
+        required: true
+        description: The user's identifier
+      title:
+        type: string
+        required: true
+        description: Task title (max 255 chars)
+      description:
+        type: string
+        required: false
+        description: Optional task description
+    returns:
+      task_id: string
+      status: "created"
+      title: string
+
+  - name: list_tasks
+    description: Retrieve tasks from the list
+    parameters:
+      user_id:
+        type: string
+        required: true
+      status:
+        type: string
+        required: false
+        default: "all"
+        enum: ["all", "pending", "completed"]
+    returns:
+      type: array
+      items:
+        id: string
+        title: string
+        description: string | null
+        completed: boolean
+        created_at: string
+        updated_at: string
+
+  - name: complete_task
+    description: Mark a task as complete
+    parameters:
+      user_id:
+        type: string
+        required: true
+      task_id:
+        type: string
+        required: true
+    returns:
+      task_id: string
+      status: "completed"
+      title: string
+
+  - name: delete_task
+    description: Remove a task from the list
+    parameters:
+      user_id:
+        type: string
+        required: true
+      task_id:
+        type: string
+        required: true
+    returns:
+      task_id: string
+      status: "deleted"
+      title: string
+
+  - name: update_task
+    description: Modify task title or description
+    parameters:
+      user_id:
+        type: string
+        required: true
+      task_id:
+        type: string
+        required: true
+      title:
+        type: string
+        required: false
+      description:
+        type: string
+        required: false
+    validation: At least one of title or description must be provided
+    returns:
+      task_id: string
+      status: "updated"
+      title: string

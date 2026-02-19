@@ -1,0 +1,72 @@
+# Minikube-specific values for Todo Chatbot
+
+replicaCount: 1
+
+namespace: todo-chatbot
+
+backend:
+  enabled: true
+  name: backend
+  image:
+    repository: todo-chatbot-backend
+    tag: latest
+    pullPolicy: Never  # Use locally built images
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1024Mi"
+      cpu: "1000m"
+  healthCheck:
+    path: /health
+    initialDelaySeconds: 60
+    periodSeconds: 15
+  env:
+    appEnv: production
+    logLevel: INFO
+
+frontend:
+  enabled: true
+  name: frontend
+  image:
+    repository: todo-chatbot-frontend
+    tag: latest
+    pullPolicy: Never  # Use locally built images
+  service:
+    type: ClusterIP
+    port: 3000
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  healthCheck:
+    path: /
+    initialDelaySeconds: 45
+    periodSeconds: 15
+  env:
+    apiUrl: "http://backend:8000"
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+  host: ""  # Empty for local development
+
+database:
+  enabled: false
+  url: "sqlite+aiosqlite:////tmp/chatbot.db"  # Use SQLite for local testing (4 slashes = absolute path /tmp/)
+
+secrets:
+  openaiApiKey: ""  # Set via --set secrets.openaiApiKey=...
+  clerkSecretKey: ""  # Set via --set secrets.clerkSecretKey=...
+  clerkPublishableKey: ""  # Set via --set secrets.clerkPublishableKey=...
+  clerkDomain: ""  # Set via --set secrets.clerkDomain=...

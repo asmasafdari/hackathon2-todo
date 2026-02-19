@@ -1,0 +1,80 @@
+# Values override for Oracle Cloud OKE deployment
+# Usage: helm upgrade --install todo-platform . -f values.yaml -f values-oke.yaml
+
+global:
+  namespace: todo
+  imagePullPolicy: Always
+
+# Backend - use OCIR image
+backend:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: ""  # Set via --set: <region>.ocir.io/<tenancy>/todo-backend
+    tag: ""         # Set via --set or CI/CD
+    pullPolicy: Always
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+# Frontend - use OCIR image
+frontend:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: ""  # Set via --set: <region>.ocir.io/<tenancy>/todo-frontend
+    tag: ""
+    pullPolicy: Always
+
+# Notification Service
+notificationService:
+  enabled: true
+  replicaCount: 1
+
+# Recurring Task Service
+recurringTaskService:
+  enabled: true
+  replicaCount: 1
+
+# Enable Kafka
+kafka:
+  enabled: true
+  brokers: "taskflow-kafka-kafka-bootstrap.kafka.svc.cluster.local:9092"
+
+# Enable full Dapr
+dapr:
+  enabled: true
+  pubsub:
+    enabled: true
+  stateStore:
+    enabled: true
+  secrets:
+    enabled: true
+  configuration:
+    enabled: true
+    tracing:
+      samplingRate: "1"
+
+# Application config (injected as env vars via ConfigMap)
+config:
+  logLevel: "INFO"
+  # ALLOWED_ORIGINS: comma-separated list of browser origins allowed to call the backend.
+  # Includes both dev origins and the Clerk hosted-pages domain (for Clerk JS redirects).
+  # Add the OKE Load Balancer IP/domain after first deploy:
+  #   e.g. http://150.xxx.xxx.xxx,https://todo.example.com
+  corsOrigins: "http://localhost:3000,http://localhost:3001,https://just-crayfish-7.clerk.accounts.dev"
+  # Internal cluster URL used by frontend → backend service calls.
+  # Matches the Helm-rendered service name: <release>-backend in namespace todo.
+  backendUrl: "http://todo-platform-backend.todo.svc.cluster.local:8000"
+
+# Ingress for OKE Load Balancer
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    kubernetes.io/ingress.class: nginx
+  host: ""  # Set to your domain or leave empty for IP-based access

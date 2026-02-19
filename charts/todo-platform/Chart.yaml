@@ -1,0 +1,25 @@
+apiVersion: v2
+name: todo-platform
+description: Cloud-native deployment for the AI-agent-enabled Todo application
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+
+dependencies:
+  - name: backend
+    version: 0.1.0
+    repository: file://charts/backend
+  - name: frontend
+    version: 0.1.0
+    repository: file://charts/frontend
+  - name: notification-service
+    version: 0.1.0
+    repository: file://charts/notification-service
+    condition: notificationService.enabled
+  - name: recurring-task-service
+    version: 0.1.0
+    repository: file://charts/recurring-task-service
+    condition: recurringTaskService.enabled
+
+maintainers:
+  - name: Todo Platform Team

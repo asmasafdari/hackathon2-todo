@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://desktoptodo.local/schemas/todo-completed.json",
+  "title": "TodoCompletedEvent",
+  "description": "Event emitted when a todo completion status is toggled",
+  "allOf": [
+    { "$ref": "cloudevent-envelope.json" }
+  ],
+  "properties": {
+    "type": {
+      "const": "com.desktoptodo.todo.completed"
+    },
+    "data": {
+      "type": "object",
+      "required": ["id", "completed"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier of the todo"
+        },
+        "completed": {
+          "type": "boolean",
+          "description": "New completion status (true=completed, false=uncompleted)"
+        },
+        "completed_at": {
+          "type": ["string", "null"],
+          "format": "date-time",
+          "description": "Timestamp when completed (null if uncompleted)"
+        },
+        "actor_id": {
+          "type": ["string", "null"],
+          "maxLength": 255,
+          "description": "Identifier of the user or service that toggled the status"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

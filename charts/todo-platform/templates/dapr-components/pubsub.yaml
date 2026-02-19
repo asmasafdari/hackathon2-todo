@@ -1,0 +1,30 @@
+{{- if .Values.kafka.enabled }}
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: kafka-pubsub
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+    - name: brokers
+      value: {{ .Values.kafka.brokers | default "kafka.default.svc.cluster.local:9092" | quote }}
+    - name: authType
+      value: {{ .Values.kafka.authType | default "none" | quote }}
+    - name: consumerGroup
+      value: {{ .Values.kafka.consumerGroup | default "todo-platform" | quote }}
+    - name: maxMessageBytes
+      value: {{ .Values.kafka.maxMessageBytes | default "1048576" | quote }}
+{{- if .Values.dapr.pubsub.scopes }}
+  scopes:
+{{- range .Values.dapr.pubsub.scopes }}
+    - {{ . }}
+{{- end }}
+{{- else }}
+  scopes:
+    - todo-backend
+    - activity-logger
+    - mcp-server
+{{- end }}
+{{- end }}

@@ -1,0 +1,275 @@
+# Default values for todo-platform umbrella chart
+# This file defines configuration for all subcharts
+
+global:
+  # Namespace for all resources
+  namespace: todo
+  # Default image tag (can be overridden per service)
+  imageTag: latest
+  # Image pull policy
+  imagePullPolicy: IfNotPresent
+
+# Backend service configuration
+backend:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: todo-backend
+    tag: ""  # Uses global.imageTag if empty
+  service:
+    type: ClusterIP
+    port: 8000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  healthCheck:
+    path: /health
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 10
+
+# Frontend service configuration
+frontend:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: todo-frontend
+    tag: ""  # Uses global.imageTag if empty
+  service:
+    type: ClusterIP
+    port: 3000
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  healthCheck:
+    path: /
+    initialDelaySeconds: 15
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# MCP server configuration
+mcp:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: todo-mcp
+    tag: ""  # Uses global.imageTag if empty
+  service:
+    type: ClusterIP
+    port: 8080
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  healthCheck:
+    path: /health
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# Activity Logger service configuration
+activityLogger:
+  enabled: false
+  replicaCount: 1
+  image:
+    repository: todo-activity-logger
+    tag: ""  # Uses global.imageTag if empty
+  service:
+    type: ClusterIP
+    port: 8081
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  healthCheck:
+    path: /health
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# Notification Service configuration
+notificationService:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: todo-notification-service
+    tag: ""
+  service:
+    type: ClusterIP
+    port: 8082
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  healthCheck:
+    path: /health
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# Recurring Task Service configuration
+recurringTaskService:
+  enabled: true
+  replicaCount: 1
+  image:
+    repository: todo-recurring-task-service
+    tag: ""
+  service:
+    type: ClusterIP
+    port: 8083
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  healthCheck:
+    path: /health
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 3
+
+# Configuration (non-sensitive)
+config:
+  logLevel: INFO
+  corsOrigins: "*"
+  backendUrl: "http://backend:8000"
+
+# Secrets (provide via --set or values-secrets.yaml)
+secrets:
+  databaseUrl: ""
+  openaiApiKey: ""
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: nginx
+  host: ""  # Empty for any host (local development)
+  annotations: {}
+  tls: []
+
+# Kafka Configuration (for event-driven mode)
+kafka:
+  enabled: false
+  brokers: "kafka:9092"
+  authType: "none"
+  consumerGroup: "todo-platform"
+  maxMessageBytes: "1048576"
+
+# Dapr Configuration
+# Full Dapr feature set: Pub/Sub, State Store, Bindings, Secrets, Service Invocation
+dapr:
+  enabled: true
+  logLevel: "info"
+  
+  # Pub/Sub Configuration
+  pubsub:
+    enabled: false
+    type: "kafka"  # Options: kafka, redis
+    name: "kafka-pubsub"
+    scopes:
+      - todo-backend
+      - activity-logger
+      - mcp-server
+  
+  # State Store Configuration
+  stateStore:
+    enabled: false
+    type: "redis"  # Options: redis, postgresql
+    name: "todo-state-store"
+    redis:
+      host: "redis-master:6379"
+      secretName: "redis"
+      secretKey: "redis-password"
+    postgresql:
+      connectionString: ""
+    scopes:
+      - todo-backend
+      - activity-logger
+      - mcp-server
+  
+  # Bindings Configuration
+  bindings:
+    cron:
+      enabled: false
+      name: "todo-cron-binding"
+      schedule: "@every 1m"
+      direction: "input"
+      scopes:
+        - todo-backend
+      jobs: []
+  
+  # Secrets Store Configuration
+  secrets:
+    enabled: false
+    type: "kubernetes"  # Options: kubernetes, local
+    name: "todo-kubernetes-secrets"
+    local:
+      filePath: "/components/secrets.json"
+    scopes:
+      - todo-backend
+      - activity-logger
+      - mcp-server
+  
+  # Configuration Resource (Tracing, mTLS, Metrics)
+  configuration:
+    enabled: false
+    name: "todo-config"
+    tracing:
+      samplingRate: "1"
+      zipkin:
+        endpoint: "http://zipkin.dapr-system.svc.cluster.local:9411/api/v2/spans"
+    mtls:
+      enabled: true
+      workloadCertTTL: "24h"
+      allowedClockSkew: "15m"
+    metrics:
+      enabled: true
+    accessControl:
+      enabled: false
+      defaultAction: "allow"
+      trustDomain: "public"
+      policies: []
+  
+  # Resiliency Configuration
+  resiliency:
+    enabled: false
+    name: "todo-resiliency"
+    retryPolicy:
+      name: "retry-policy"
+      type: "constant"
+      duration: "5s"
+      maxRetries: 3
+    timeout:
+      name: "general-timeout"
+      duration: "30s"
+    circuitBreaker:
+      name: "circuit-breaker"
+      maxRequests: 1
+      interval: "10s"
+      timeout: "5s"
+      failureThreshold: 5

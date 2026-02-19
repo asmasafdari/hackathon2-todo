@@ -1,0 +1,101 @@
+# kube-prometheus-stack Helm values for Oracle OKE deployment
+# Install:
+#   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+#   helm repo update
+#   helm upgrade --install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+#     --namespace monitoring --create-namespace \
+#     -f k8s/monitoring/prometheus-stack-values.yaml
+
+grafana:
+  adminPassword: "change-me-in-production"   # Override in CI via --set grafana.adminPassword=...
+  persistence:
+    enabled: true
+    storageClassName: "oci"    # OKE storage class
+    size: 5Gi
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: false             # Enable when domain is configured
+  dashboardProviders:
+    dashboardproviders.yaml:
+      apiVersion: 1
+      providers:
+        - name: dapr
+          orgId: 1
+          folder: Dapr
+          type: file
+          disableDeletion: false
+          options:
+            path: /var/lib/grafana/dashboards/dapr
+        - name: kubernetes
+          orgId: 1
+          folder: Kubernetes
+          type: file
+          disableDeletion: false
+          options:
+            path: /var/lib/grafana/dashboards/kubernetes
+  dashboards:
+    dapr:
+      dapr-sidecar-metrics:
+        # Official Dapr sidecar metrics dashboard
+        url: https://grafana.com/api/dashboards/19907/revisions/1/download
+        datasource: Prometheus
+    kubernetes:
+      kubernetes-cluster:
+        # Kubernetes cluster overview
+        url: https://grafana.com/api/dashboards/7249/revisions/1/download
+        datasource: Prometheus
+
+prometheus:
+  prometheusSpec:
+    # Discover ServiceMonitors in all namespaces
+    serviceMonitorNamespaceSelector: {}
+    serviceMonitorSelector: {}
+    podMonitorNamespaceSelector: {}
+    podMonitorSelector: {}
+    # Retention + storage
+    retention: 15d
+    retentionSize: "8GB"
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: oci
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 10Gi
+    # Scrape all pods with prometheus.io/scrape: "true" annotation
+    additionalScrapeConfigs:
+      - job_name: "dapr-pods"
+        kubernetes_sd_configs:
+          - role: pod
+            namespaces:
+              names: [todo, dapr-system]
+        relabel_configs:
+          - source_labels: [__meta_kubernetes_pod_annotation_dapr_io_metrics_port]
+            action: keep
+            regex: ".*"
+          - source_labels: [__meta_kubernetes_pod_annotation_dapr_io_metrics_port]
+            target_label: __address__
+            regex: (.+)
+            replacement: "${__meta_kubernetes_pod_ip}:${1}"
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: oci
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 2Gi
+
+# Lightweight node exporter for OKE nodes
+nodeExporter:
+  enabled: true
+
+# kube-state-metrics for K8s object metrics
+kubeStateMetrics:
+  enabled: true

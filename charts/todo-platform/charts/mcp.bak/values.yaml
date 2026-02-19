@@ -1,0 +1,41 @@
+# MCP server subchart values
+# These are defaults that can be overridden by parent chart
+
+enabled: false
+
+replicaCount: 1
+
+image:
+  repository: todo-mcp
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8080
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+
+healthCheck:
+  path: /health
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 3
+
+env:
+  backendUrl: "http://backend:8000"
+
+# Dapr configuration
+dapr:
+  enabled: true
+  logLevel: "info"
+  sidecar:
+    cpuLimit: "300m"
+    memoryLimit: "256Mi"

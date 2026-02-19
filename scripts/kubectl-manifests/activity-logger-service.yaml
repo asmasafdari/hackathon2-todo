@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: activity-logger
+  labels:
+    app: activity-logger
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8081
+    targetPort: 8081
+    protocol: TCP
+  selector:
+    app: activity-logger

@@ -1,0 +1,45 @@
+{{- if .Values.dapr.bindings.cron.enabled }}
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: {{ .Values.dapr.bindings.cron.name | default "todo-cron-binding" }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: bindings.cron
+  version: v1
+  metadata:
+    - name: schedule
+      value: {{ .Values.dapr.bindings.cron.schedule | default "@every 1m" | quote }}
+    - name: direction
+      value: {{ .Values.dapr.bindings.cron.direction | default "input" | quote }}
+  {{- if .Values.dapr.bindings.cron.scopes }}
+  scopes:
+  {{- range .Values.dapr.bindings.cron.scopes }}
+    - {{ . }}
+  {{- end }}
+  {{- else }}
+  scopes:
+    - todo-backend
+  {{- end }}
+---
+{{- if .Values.dapr.bindings.cron.jobs }}
+{{- range .Values.dapr.bindings.cron.jobs }}
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: {{ .name }}
+  namespace: {{ $.Release.Namespace }}
+spec:
+  type: bindings.cron
+  version: v1
+  metadata:
+    - name: schedule
+      value: {{ .schedule | quote }}
+    - name: direction
+      value: {{ .direction | default "input" | quote }}
+  scopes:
+    - {{ .targetService | default "todo-backend" }}
+---
+{{- end }}
+{{- end }}
+{{- end }}

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: activity-logger
+description: Activity Logger service for event audit trail
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

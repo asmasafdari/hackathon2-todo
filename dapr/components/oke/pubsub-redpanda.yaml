@@ -1,0 +1,33 @@
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: kafka-pubsub
+  namespace: todo
+spec:
+  type: pubsub.kafka
+  version: v1
+  metadata:
+    - name: brokers
+      secretKeyRef:
+        name: todo-secrets
+        key: KAFKA_BROKERS
+    - name: authType
+      value: "scram"
+    - name: saslUsername
+      secretKeyRef:
+        name: todo-secrets
+        key: KAFKA_API_KEY
+    - name: saslPassword
+      secretKeyRef:
+        name: todo-secrets
+        key: KAFKA_API_SECRET
+    - name: consumerGroup
+      value: "todo-platform"
+    - name: initialOffset
+      value: "newest"
+    - name: maxMessageBytes
+      value: "1048576"
+    - name: version
+      value: "2.6.0"
+  auth:
+    secretStore: kubernetes-secrets

@@ -1,0 +1,78 @@
+{{- if .Values.dapr.resiliency.enabled }}
+apiVersion: dapr.io/v1alpha1
+kind: Resiliency
+metadata:
+  name: {{ .Values.dapr.resiliency.name | default "todo-resiliency" }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  policies:
+    retries:
+      {{ .Values.dapr.resiliency.retryPolicy.name | default "retry-policy" }}:
+        policy: {{ .Values.dapr.resiliency.retryPolicy.type | default "constant" }}
+        duration: {{ .Values.dapr.resiliency.retryPolicy.duration | default "5s" }}
+        maxRetries: {{ .Values.dapr.resiliency.retryPolicy.maxRetries | default 3 }}
+    timeouts:
+      {{ .Values.dapr.resiliency.timeout.name | default "general-timeout" }}:
+        timeout: {{ .Values.dapr.resiliency.timeout.duration | default "30s" }}
+    circuitBreakers:
+      {{ .Values.dapr.resiliency.circuitBreaker.name | default "circuit-breaker" }}:
+        maxRequests: {{ .Values.dapr.resiliency.circuitBreaker.maxRequests | default 1 }}
+        interval: {{ .Values.dapr.resiliency.circuitBreaker.interval | default "10s" }}
+        timeout: {{ .Values.dapr.resiliency.circuitBreaker.timeout | default "5s" }}
+        trip: consecutiveFailures > {{ .Values.dapr.resiliency.circuitBreaker.failureThreshold | default 5 }}
+  targets:
+    apps:
+      - name: backend
+        retry: {{ .Values.dapr.resiliency.retryPolicy.name | default "retry-policy" }}
+        timeout: {{ .Values.dapr.resiliency.timeout.name | default "general-timeout" }}
+        circuitBreaker: {{ .Values.dapr.resiliency.circuitBreaker.name | default "circuit-breaker" }}
+      - name: activity-logger
+        retry: {{ .Values.dapr.resiliency.retryPolicy.name | default "retry-policy" }}
+        timeout: {{ .Values.dapr.resiliency.timeout.name | default "general-timeout" }}
+      - name: mcp-server
+        retry: {{ .Values.dapr.resiliency.retryPolicy.name | default "retry-policy" }}
+        timeout: {{ .Values.dapr.resiliency.timeout.name | default "general-timeout" }}
+{{- end }}
+---
+{{- if .Values.dapr.configuration.enabled }}
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  name: {{ .Values.dapr.configuration.name | default "todo-config" }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  tracing:
+    samplingRate: {{ .Values.dapr.configuration.tracing.samplingRate | default "1" }}
+    zipkin:
+      endpointAddress: {{ .Values.dapr.configuration.tracing.zipkin.endpoint | default "http://zipkin:9411/api/v2/spans" }}
+  {{- if .Values.dapr.configuration.mtls.enabled }}
+  mtls:
+    enabled: {{ .Values.dapr.configuration.mtls.enabled }}
+    workloadCertTTL: {{ .Values.dapr.configuration.mtls.workloadCertTTL | default "24h" }}
+    allowedClockSkew: {{ .Values.dapr.configuration.mtls.allowedClockSkew | default "15m" }}
+  {{- end }}
+  {{- if .Values.dapr.configuration.metrics.enabled }}
+  metrics:
+    enabled: {{ .Values.dapr.configuration.metrics.enabled }}
+  {{- end }}
+  {{- if .Values.dapr.configuration.accessControl.enabled }}
+  accessControl:
+    defaultAction: {{ .Values.dapr.configuration.accessControl.defaultAction | default "allow" }}
+    trustDomain: {{ .Values.dapr.configuration.accessControl.trustDomain | default "public" }}
+    policies:
+    {{- range .Values.dapr.configuration.accessControl.policies }}
+      - appId: {{ .appId }}
+        defaultAction: {{ .defaultAction | default "allow" }}
+        trustDomain: {{ .trustDomain | default "public" }}
+        namespace: {{ $.Release.Namespace }}
+        {{- if .operations }}
+        operations:
+        {{- range .operations }}
+          - name: {{ .name }}
+            httpVerb: {{ .httpVerb | default "["]" }}
+            action: {{ .action | default "allow" }}
+        {{- end }}
+        {{- end }}
+    {{- end }}
+  {{- end }}
+{{- end }}

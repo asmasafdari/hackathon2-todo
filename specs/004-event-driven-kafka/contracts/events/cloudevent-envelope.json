@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://desktoptodo.local/schemas/cloudevent-envelope.json",
+  "title": "CloudEvents v1.0 Envelope",
+  "description": "Base schema for all CloudEvents messages in the Todo platform",
+  "type": "object",
+  "required": ["specversion", "id", "source", "type", "time", "datacontenttype", "data"],
+  "properties": {
+    "specversion": {
+      "type": "string",
+      "const": "1.0",
+      "description": "CloudEvents specification version"
+    },
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for this event"
+    },
+    "source": {
+      "type": "string",
+      "format": "uri-reference",
+      "pattern": "^/",
+      "description": "Identifies the context in which an event happened",
+      "examples": ["/backend/todo-service", "/agent/mcp-server"]
+    },
+    "type": {
+      "type": "string",
+      "pattern": "^com\\.desktoptodo\\.",
+      "description": "Event type in reverse-DNS notation",
+      "examples": [
+        "com.desktoptodo.todo.created",
+        "com.desktoptodo.todo.updated",
+        "com.desktoptodo.agent.action.executed"
+      ]
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Timestamp when the event occurred (ISO 8601)"
+    },
+    "datacontenttype": {
+      "type": "string",
+      "const": "application/json",
+      "description": "Content type of the data attribute"
+    },
+    "subject": {
+      "type": "string",
+      "description": "Identifies the subject of the event (typically entity ID)"
+    },
+    "data": {
+      "type": "object",
+      "description": "Event-specific payload"
+    }
+  },
+  "additionalProperties": false
+}

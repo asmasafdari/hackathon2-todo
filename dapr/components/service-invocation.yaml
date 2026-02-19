@@ -1,0 +1,34 @@
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  name: todo-platform-config
+spec:
+  # Enable service invocation with retries and circuit breaker
+  nameResolution:
+    component: "kubernetes"
+  # Application-level resiliency
+  appHttpPipeline:
+    handlers: []
+---
+apiVersion: dapr.io/v1alpha1
+kind: Resiliency
+metadata:
+  name: todo-resiliency
+spec:
+  policies:
+    retries:
+      retryForever:
+        policy: constant
+        maxRetries: 3
+        duration: 2s
+    circuitBreakers:
+      simpleCB:
+        maxRequests: 1
+        interval: 30s
+        timeout: 60s
+        trip: consecutiveFailures > 3
+  targets:
+    apps:
+      backend-service:
+        retry: retryForever
+        circuitBreaker: simpleCB

@@ -1,0 +1,82 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: task-events
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: taskflow-kafka
+spec:
+  partitions: 3
+  replicas: 1
+  config:
+    retention.ms: 604800000
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: reminders
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: taskflow-kafka
+spec:
+  partitions: 1
+  replicas: 1
+  config:
+    retention.ms: 86400000
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: task-updates
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: taskflow-kafka
+spec:
+  partitions: 3
+  replicas: 1
+  config:
+    retention.ms: 86400000
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: todo.created
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: taskflow-kafka
+spec:
+  partitions: 3
+  replicas: 1
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: todo.updated
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: taskflow-kafka
+spec:
+  partitions: 3
+  replicas: 1
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: todo.completed
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: taskflow-kafka
+spec:
+  partitions: 3
+  replicas: 1
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaTopic
+metadata:
+  name: todo.deleted
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: taskflow-kafka
+spec:
+  partitions: 3
+  replicas: 1

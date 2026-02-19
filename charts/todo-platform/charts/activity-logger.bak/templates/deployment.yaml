@@ -1,0 +1,66 @@
+{{- if .Values.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-activity-logger
+  labels:
+    app: activity-logger
+    app.kubernetes.io/name: activity-logger
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: activity-logger
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: activity-logger
+        app.kubernetes.io/name: activity-logger
+        app.kubernetes.io/instance: {{ .Release.Name }}
+      {{- if .Values.dapr.enabled }}
+      annotations:
+        dapr.io/enabled: "true"
+        dapr.io/app-id: "activity-logger"
+        dapr.io/app-port: "8081"
+        dapr.io/app-protocol: "http"
+        dapr.io/sidecar-cpu-limit: {{ .Values.dapr.sidecar.cpuLimit | default "300m" | quote }}
+        dapr.io/sidecar-memory-limit: {{ .Values.dapr.sidecar.memoryLimit | default "256Mi" | quote }}
+        dapr.io/enable-app-health-check: "true"
+        dapr.io/app-health-check-path: "/health"
+        dapr.io/log-level: {{ .Values.dapr.logLevel | default "info" | quote }}
+      {{- end }}
+    spec:
+      containers:
+        - name: activity-logger
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Values.global.imageTag | default "latest" }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy | default .Values.global.imagePullPolicy | default "IfNotPresent" }}
+          ports:
+            - name: http
+              containerPort: 8081
+              protocol: TCP
+          envFrom:
+            - configMapRef:
+                name: {{ .Release.Name }}-config
+            - secretRef:
+                name: {{ .Release.Name }}-secrets
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.healthCheck.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.healthCheck.initialDelaySeconds }}
+            periodSeconds: {{ .Values.healthCheck.periodSeconds }}
+            timeoutSeconds: {{ .Values.healthCheck.timeoutSeconds }}
+            failureThreshold: {{ .Values.healthCheck.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.healthCheck.path }}
+              port: http
+            initialDelaySeconds: {{ .Values.healthCheck.initialDelaySeconds }}
+            periodSeconds: {{ .Values.healthCheck.periodSeconds }}
+            timeoutSeconds: {{ .Values.healthCheck.timeoutSeconds }}
+            failureThreshold: {{ .Values.healthCheck.failureThreshold }}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+{{- end }}

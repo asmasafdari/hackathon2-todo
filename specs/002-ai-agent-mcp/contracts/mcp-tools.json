@@ -1,0 +1,217 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Todo MCP Server Tools",
+  "description": "MCP tool definitions for the AI Agent-Driven Todo Management system",
+  "version": "1.0.0",
+  "tools": [
+    {
+      "name": "create_todo",
+      "description": "Create a new todo item. Use when the user wants to add a task.",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "The title of the todo item (required)"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "Optional detailed description"
+          }
+        },
+        "required": ["title"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "$ref": "#/$defs/TodoRead"
+      }
+    },
+    {
+      "name": "list_todos",
+      "description": "List all todos with optional filtering. Use to show the user their tasks.",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "filter": {
+            "type": "string",
+            "enum": ["all", "pending", "completed"],
+            "default": "all",
+            "description": "Filter todos by status: 'all' (default), 'pending', or 'completed'"
+          }
+        },
+        "required": [],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/TodoRead"
+        }
+      }
+    },
+    {
+      "name": "get_todo",
+      "description": "Get details of a specific todo by ID.",
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The UUID of the todo to retrieve"
+          }
+        },
+        "required": ["id"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "$ref": "#/$defs/TodoRead"
+      }
+    },
+    {
+      "name": "update_todo",
+      "description": "Update an existing todo's title or description. Provide at least one field to update.",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The UUID of the todo to update"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "New title (optional)"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "description": "New description (optional)"
+          }
+        },
+        "required": ["id"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "$ref": "#/$defs/TodoRead"
+      }
+    },
+    {
+      "name": "toggle_todo",
+      "description": "Toggle a todo's completion status. Complete becomes incomplete and vice versa.",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The UUID of the todo to toggle"
+          }
+        },
+        "required": ["id"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "$ref": "#/$defs/TodoRead"
+      }
+    },
+    {
+      "name": "delete_todo",
+      "description": "Permanently delete a todo. This action cannot be undone.",
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true
+      },
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "description": "The UUID of the todo to delete"
+          }
+        },
+        "required": ["id"],
+        "additionalProperties": false
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "deleted_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": ["success", "deleted_id"]
+      }
+    }
+  ],
+  "$defs": {
+    "TodoRead": {
+      "type": "object",
+      "description": "Todo item as returned from the API",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Unique identifier"
+        },
+        "title": {
+          "type": "string",
+          "maxLength": 255,
+          "description": "Task title"
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 1000,
+          "nullable": true,
+          "description": "Optional detailed description"
+        },
+        "completed": {
+          "type": "boolean",
+          "description": "Completion status"
+        },
+        "created_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp (ISO 8601)"
+        }
+      },
+      "required": ["id", "title", "completed", "created_at"]
+    }
+  }
+}

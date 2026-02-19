@@ -1,0 +1,143 @@
+---
+# OpenTelemetry Collector ConfigMap
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: monitoring
+data:
+  otel-collector-config.yaml: |
+    receivers:
+      # Receives Dapr distributed traces (Zipkin format)
+      zipkin:
+        endpoint: "0.0.0.0:9411"
+      # Receives OTLP traces from any instrumented service
+      otlp:
+        protocols:
+          grpc:
+            endpoint: "0.0.0.0:4317"
+          http:
+            endpoint: "0.0.0.0:4318"
+
+    processors:
+      batch:
+        timeout: 5s
+        send_batch_size: 512
+      memory_limiter:
+        check_interval: 1s
+        limit_mib: 256
+        spike_limit_mib: 64
+      # Tag all spans with cluster=oke for Grafana filtering
+      resource:
+        attributes:
+          - action: upsert
+            key: cluster
+            value: "oke"
+          - action: upsert
+            key: deployment.environment
+            value: "production"
+
+    exporters:
+      # Log traces locally (visible in kubectl logs)
+      logging:
+        loglevel: warn
+      # Export to Prometheus (metrics derived from spans)
+      prometheus:
+        endpoint: "0.0.0.0:8889"
+        namespace: "otel"
+
+    service:
+      pipelines:
+        traces:
+          receivers: [zipkin, otlp]
+          processors: [memory_limiter, batch, resource]
+          exporters: [logging]
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [prometheus]
+
+---
+# OpenTelemetry Collector Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  namespace: monitoring
+  labels:
+    app: otel-collector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+    spec:
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector-contrib:0.91.0
+          args:
+            - "--config=/conf/otel-collector-config.yaml"
+          ports:
+            - name: zipkin
+              containerPort: 9411
+              protocol: TCP
+            - name: otlp-grpc
+              containerPort: 4317
+              protocol: TCP
+            - name: otlp-http
+              containerPort: 4318
+              protocol: TCP
+            - name: prom-metrics
+              containerPort: 8889
+              protocol: TCP
+          volumeMounts:
+            - name: config
+              mountPath: /conf
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            initialDelaySeconds: 5
+            periodSeconds: 30
+      volumes:
+        - name: config
+          configMap:
+            name: otel-collector-config
+
+---
+# OpenTelemetry Collector Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  namespace: monitoring
+  labels:
+    app: otel-collector
+spec:
+  selector:
+    app: otel-collector
+  ports:
+    - name: zipkin
+      port: 9411
+      targetPort: 9411
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+    - name: prom-metrics
+      port: 8889
+      targetPort: 8889
+  type: ClusterIP

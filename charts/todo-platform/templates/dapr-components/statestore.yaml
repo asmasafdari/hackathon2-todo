@@ -1,0 +1,39 @@
+{{- if .Values.dapr.stateStore.enabled }}
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: {{ .Values.dapr.stateStore.name | default "todo-state-store" }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  type: state.{{ .Values.dapr.stateStore.type | default "redis" }}
+  version: v1
+  metadata:
+  {{- if eq (.Values.dapr.stateStore.type | default "redis") "redis" }}
+    - name: redisHost
+      value: {{ .Values.dapr.stateStore.redis.host | default "redis-master:6379" }}
+    - name: redisPassword
+      secretKeyRef:
+        name: {{ .Values.dapr.stateStore.redis.secretName | default "redis" }}
+        key: {{ .Values.dapr.stateStore.redis.secretKey | default "redis-password" }}
+    - name: actorStateStore
+      value: "true"
+    - name: keyPrefix
+      value: "name"
+  {{- else if eq .Values.dapr.stateStore.type "postgresql" }}
+    - name: connectionString
+      value: {{ .Values.dapr.stateStore.postgresql.connectionString | default "" }}
+    - name: actorStateStore
+      value: "true"
+  {{- end }}
+  {{- if .Values.dapr.stateStore.scopes }}
+  scopes:
+  {{- range .Values.dapr.stateStore.scopes }}
+    - {{ . }}
+  {{- end }}
+  {{- else }}
+  scopes:
+    - todo-backend
+    - activity-logger
+    - mcp-server
+  {{- end }}
+{{- end }}

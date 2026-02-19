@@ -1,0 +1,35 @@
+# Redis Streams fallback for Dapr pub/sub.
+# Drop-in replacement for pubsub-redpanda.yaml — same component name,
+# so app code (PUBSUB_NAME = "kafka-pubsub") requires no changes.
+#
+# To activate: in CI, apply this file INSTEAD of pubsub-redpanda.yaml
+#   kubectl apply -f dapr/components/oke/pubsub-redis-fallback.yaml -n todo
+#   (delete pubsub-redpanda.yaml component first if already applied)
+#
+# Tested with Upstash Redis (free tier, TLS, no VPC required).
+# Sign up at https://upstash.com → create a Redis database → copy endpoint.
+apiVersion: dapr.io/v1alpha1
+kind: Component
+metadata:
+  name: kafka-pubsub
+  namespace: todo
+spec:
+  type: pubsub.redis
+  version: v1
+  metadata:
+    - name: redisHost
+      secretKeyRef:
+        name: todo-secrets
+        key: REDIS_URL
+    - name: redisPassword
+      secretKeyRef:
+        name: todo-secrets
+        key: REDIS_PASSWORD
+    - name: consumerID
+      value: "todo-platform"
+    - name: enableTLS
+      value: "true"
+    - name: maxLenApprox
+      value: "10000"
+  auth:
+    secretStore: kubernetes-secrets

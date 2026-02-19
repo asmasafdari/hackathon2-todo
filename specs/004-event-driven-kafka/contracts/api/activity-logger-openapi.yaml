@@ -1,0 +1,310 @@
+openapi: 3.1.0
+info:
+  title: Activity Logger API
+  description: REST API for querying the activity log (event audit trail)
+  version: 1.0.0
+  contact:
+    name: Desktop Todo Platform
+
+servers:
+  - url: http://localhost:8001
+    description: Local development
+  - url: http://activity-logger.default.svc.cluster.local
+    description: Kubernetes internal
+
+paths:
+  /health:
+    get:
+      summary: Health check endpoint
+      operationId: healthCheck
+      tags:
+        - Health
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /logs:
+    get:
+      summary: Query activity logs
+      description: |
+        Retrieve activity log entries with optional filtering.
+        Results are ordered by occurred_at descending (most recent first).
+      operationId: queryLogs
+      tags:
+        - Activity Logs
+      parameters:
+        - name: event_type
+          in: query
+          description: Filter by event type (e.g., com.desktoptodo.todo.created)
+          schema:
+            type: string
+          example: com.desktoptodo.todo.created
+        - name: entity_type
+          in: query
+          description: Filter by entity type (todo, agent)
+          schema:
+            type: string
+            enum: [todo, agent]
+        - name: entity_id
+          in: query
+          description: Filter by entity ID (e.g., todo UUID)
+          schema:
+            type: string
+            format: uuid
+        - name: actor_id
+          in: query
+          description: Filter by actor ID (user or service)
+          schema:
+            type: string
+        - name: from_time
+          in: query
+          description: Filter events occurring after this time (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+        - name: to_time
+          in: query
+          description: Filter events occurring before this time (ISO 8601)
+          schema:
+            type: string
+            format: date-time
+        - name: limit
+          in: query
+          description: Maximum number of results to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+        - name: offset
+          in: query
+          description: Number of results to skip (for pagination)
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: List of activity log entries
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityLogList'
+        '400':
+          description: Invalid query parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /logs/{event_id}:
+    get:
+      summary: Get a single activity log entry
+      operationId: getLog
+      tags:
+        - Activity Logs
+      parameters:
+        - name: event_id
+          in: path
+          required: true
+          description: The unique event ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Activity log entry
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityLogEntry'
+        '404':
+          description: Log entry not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /logs/stats:
+    get:
+      summary: Get activity statistics
+      description: Returns aggregated statistics about logged events
+      operationId: getStats
+      tags:
+        - Activity Logs
+      parameters:
+        - name: from_time
+          in: query
+          description: Start of time range for statistics
+          schema:
+            type: string
+            format: date-time
+        - name: to_time
+          in: query
+          description: End of time range for statistics
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Activity statistics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActivityStats'
+
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      required:
+        - status
+        - service
+        - version
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        service:
+          type: string
+          example: activity-logger
+        version:
+          type: string
+          example: 1.0.0
+
+    ActivityLogEntry:
+      type: object
+      required:
+        - id
+        - event_id
+        - event_type
+        - event_source
+        - entity_type
+        - entity_id
+        - occurred_at
+        - recorded_at
+      properties:
+        id:
+          type: integer
+          format: int64
+          description: Internal database ID
+        event_id:
+          type: string
+          format: uuid
+          description: CloudEvents event ID
+        event_type:
+          type: string
+          description: CloudEvents event type
+          example: com.desktoptodo.todo.created
+        event_source:
+          type: string
+          description: CloudEvents event source
+          example: /backend/todo-service
+        entity_type:
+          type: string
+          description: Type of entity affected
+          example: todo
+        entity_id:
+          type: string
+          description: ID of the entity affected
+        actor_id:
+          type: string
+          nullable: true
+          description: ID of the actor who triggered the event
+        actor_type:
+          type: string
+          nullable: true
+          description: Type of actor (user, system, service)
+        old_data:
+          type: object
+          nullable: true
+          description: Previous state (for updates/deletes)
+        new_data:
+          type: object
+          nullable: true
+          description: New state (for creates/updates)
+        metadata:
+          type: object
+          nullable: true
+          description: Additional context
+        occurred_at:
+          type: string
+          format: date-time
+          description: When the event occurred
+        recorded_at:
+          type: string
+          format: date-time
+          description: When the event was logged
+
+    ActivityLogList:
+      type: object
+      required:
+        - items
+        - total
+        - limit
+        - offset
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActivityLogEntry'
+        total:
+          type: integer
+          format: int64
+          description: Total number of matching entries
+        limit:
+          type: integer
+          description: Requested limit
+        offset:
+          type: integer
+          description: Requested offset
+
+    ActivityStats:
+      type: object
+      required:
+        - total_events
+        - events_by_type
+        - time_range
+      properties:
+        total_events:
+          type: integer
+          format: int64
+        events_by_type:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int64
+          example:
+            com.desktoptodo.todo.created: 150
+            com.desktoptodo.todo.completed: 75
+            com.desktoptodo.todo.deleted: 25
+        time_range:
+          type: object
+          properties:
+            from:
+              type: string
+              format: date-time
+            to:
+              type: string
+              format: date-time
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+          example: NOT_FOUND
+        message:
+          type: string
+          description: Human-readable error message
+        details:
+          type: object
+          description: Additional error details

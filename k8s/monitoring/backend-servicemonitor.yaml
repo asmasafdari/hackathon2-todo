@@ -1,0 +1,46 @@
+# Prometheus ServiceMonitor for Todo backend service
+# Scrapes /metrics from the backend pod on port 8000.
+# Note: FastAPI exposes basic ASGI metrics via starlette-prometheus or
+#       prometheus-fastapi-instrumentator if added to requirements.txt.
+#       Without that, this ServiceMonitor scrapes process/uvicorn metrics only.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: backend-metrics
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  namespaceSelector:
+    matchNames:
+      - todo
+  selector:
+    matchLabels:
+      app: backend
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
+
+---
+# Activity Logger ServiceMonitor
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: activity-logger-metrics
+  namespace: monitoring
+  labels:
+    release: kube-prometheus-stack
+spec:
+  namespaceSelector:
+    matchNames:
+      - todo
+  selector:
+    matchLabels:
+      app: activity-logger
+  endpoints:
+    - port: http
+      path: /metrics
+      interval: 30s
+      scrapeTimeout: 10s
