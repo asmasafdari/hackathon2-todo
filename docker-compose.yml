@@ -39,10 +39,10 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     healthcheck:
-      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list || exit 1"]
-      interval: 15s
-      timeout: 15s
-      start_period: 60s
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/localhost/9092' 2>/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
       retries: 10
 
   # Kafka UI for browsing topics and messages
@@ -97,6 +97,8 @@ services:
       - "--dapr-grpc-port=50001"
       - "--components-path=/components"
       - "--config=/config/config.yaml"
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-postgresql://todouser:todopass@db:5432/tododb}
     volumes:
       - ./dapr/components:/components
       - ./dapr:/config

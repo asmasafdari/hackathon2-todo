@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { ClerkProvider, SignInButton, SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
+import { ClerkProvider } from "@clerk/nextjs";
+import { NavAuth } from "@/components/NavAuth";
 import "./globals.css";
 
 export const dynamic = "force-dynamic";
@@ -20,18 +21,7 @@ export default function RootLayout({
         <body className="antialiased">
           <nav className="bg-white shadow-sm border-b border-gray-200 px-6 py-3 flex justify-between items-center">
             <h1 className="text-lg font-semibold text-gray-900">Todo AI Assistant</h1>
-            <div>
-              <SignedOut>
-                <SignInButton mode="modal">
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm">
-                    Sign In
-                  </button>
-                </SignInButton>
-              </SignedOut>
-              <SignedIn>
-                <UserButton afterSignOutUrl="/" />
-              </SignedIn>
-            </div>
+            <NavAuth />
           </nav>
           {children}
         </body>

@@ -7,12 +7,8 @@ spec:
   version: v1
   metadata:
     - name: connectionString
-      secretKeyRef:
-        name: db-credentials
-        key: connectionString
+      envRef: DATABASE_URL
     - name: tableName
       value: "dapr_state"
     - name: metadataTableName
       value: "dapr_metadata"
-auth:
-  secretStore: kubernetes-secrets
