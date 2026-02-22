@@ -36,11 +36,11 @@ export default function TodoForm({ onSubmit }: TodoFormProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+    <form onSubmit={handleSubmit} className="bg-white p-5 rounded-2xl border border-pink-100 shadow-sm">
       <div className="space-y-4">
         <div>
-          <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">
-            Title *
+          <label htmlFor="title" className="block text-sm font-medium text-gray-600 mb-1">
+            Title <span className="text-pink-400">*</span>
           </label>
           <input
             id="title"
@@ -51,14 +51,14 @@ export default function TodoForm({ onSubmit }: TodoFormProps) {
               if (error) setError(null);
             }}
             placeholder="What needs to be done?"
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-gray-800 placeholder-gray-300"
             disabled={isSubmitting}
           />
         </div>
 
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-            Description (optional)
+          <label htmlFor="description" className="block text-sm font-medium text-gray-600 mb-1">
+            Description <span className="text-gray-400 font-normal">(optional)</span>
           </label>
           <textarea
             id="description"
@@ -66,21 +66,21 @@ export default function TodoForm({ onSubmit }: TodoFormProps) {
             onChange={(e) => setDescription(e.target.value)}
             placeholder="Add more details..."
             rows={2}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-gray-800 placeholder-gray-300 resize-none"
             disabled={isSubmitting}
           />
         </div>
 
         {error && (
-          <p className="text-red-600 text-sm">{error}</p>
+          <p className="text-red-400 text-sm">{error}</p>
         )}
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full px-4 py-2.5 bg-pink-400 text-white rounded-xl hover:bg-pink-500 disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors"
         >
-          {isSubmitting ? "Adding..." : "Add Todo"}
+          {isSubmitting ? "Adding..." : "Add Task"}
         </button>
       </div>
     </form>

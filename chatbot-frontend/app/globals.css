@@ -2,37 +2,25 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
-}
-
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background-color: #fdf2f8;
 }
 
 /* Custom scrollbar for chat */
 .chat-container {
   scrollbar-width: thin;
-  scrollbar-color: #cbd5e1 #f1f5f9;
+  scrollbar-color: #fbcfe8 #fdf2f8;
 }
 
 .chat-container::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 
 .chat-container::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: #fdf2f8;
 }
 
 .chat-container::-webkit-scrollbar-thumb {
-  background-color: #cbd5e1;
+  background-color: #fbcfe8;
   border-radius: 3px;
 }

@@ -100,13 +100,20 @@ export default function Home() {
   };
 
   return (
-    <main className="max-w-2xl mx-auto p-6">
+    <main className="max-w-2xl mx-auto px-6 py-10">
       <SignedOut>
-        <div className="text-center py-16">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Welcome to Todo App</h2>
-          <p className="text-gray-600 mb-8">Sign in to manage your tasks</p>
+        <div className="text-center py-24">
+          <div className="inline-flex items-center gap-2 mb-6 px-3 py-1 bg-pink-100 text-pink-500 rounded-full text-sm font-medium">
+            ✦ Simple task management
+          </div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4 tracking-tight leading-tight">
+            Stay organised.<br />Get things done.
+          </h1>
+          <p className="text-gray-500 mb-10 max-w-sm mx-auto leading-relaxed">
+            A minimal, beautiful way to track your daily tasks and keep your mind clear.
+          </p>
           <SignInButton mode="modal">
-            <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-lg">
+            <button className="px-8 py-3 bg-pink-400 text-white rounded-full hover:bg-pink-500 font-medium transition-colors text-base">
               Get Started
             </button>
           </SignInButton>
@@ -114,10 +121,13 @@ export default function Home() {
       </SignedOut>
 
       <SignedIn>
-        <h1 className="text-3xl font-bold text-gray-900 mb-8">Your Todos</h1>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 tracking-tight">My Tasks</h1>
+          <p className="text-gray-500 mt-1 text-sm">Track, organise, and accomplish your daily tasks.</p>
+        </div>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+          <div className="mb-4 p-4 bg-red-50 border border-red-100 rounded-xl text-red-600 text-sm">
             {error}
           </div>
         )}
@@ -125,9 +135,12 @@ export default function Home() {
         <TodoForm onSubmit={handleCreate} />
 
         <div className="mt-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">
-            Tasks ({todos.length})
-          </h2>
+          <div className="flex items-center gap-2 mb-4">
+            <h2 className="text-base font-semibold text-gray-700">Tasks</h2>
+            <span className="px-2 py-0.5 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">
+              {todos.length}
+            </span>
+          </div>
           <TodoList
             todos={todos}
             loading={loading}

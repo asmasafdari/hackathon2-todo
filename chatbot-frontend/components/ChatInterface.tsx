@@ -87,20 +87,19 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-2xl border border-pink-100 shadow-sm overflow-hidden">
       {/* Chat Messages */}
-      <div className="h-[500px] overflow-y-auto p-4 space-y-4 chat-container">
+      <div className="h-[500px] overflow-y-auto p-5 space-y-4 chat-container">
         {messages.length === 0 && (
-          <div className="text-center text-gray-500 py-8">
-            <p className="text-lg mb-2">Welcome!</p>
-            <p>I can help you manage your tasks.</p>
-            <p className="text-sm mt-4">Try asking me to:</p>
-            <ul className="text-sm mt-2 space-y-1">
-              <li>&quot;Add a task to buy groceries&quot;</li>
-              <li>&quot;Show my pending tasks&quot;</li>
-              <li>&quot;Mark task 1 as complete&quot;</li>
-              <li>&quot;Delete the meeting task&quot;</li>
-            </ul>
+          <div className="text-center py-12">
+            <div className="text-3xl mb-3">✦</div>
+            <p className="text-gray-700 font-medium mb-1">How can I help today?</p>
+            <p className="text-gray-400 text-sm mb-6">I can add, list, complete, or delete your tasks.</p>
+            <div className="inline-flex flex-col gap-2 text-sm text-gray-500">
+              <span className="px-3 py-1.5 bg-yellow-100 text-yellow-700 rounded-full">&quot;Add a task to buy groceries&quot;</span>
+              <span className="px-3 py-1.5 bg-green-100 text-green-700 rounded-full">&quot;Show my pending tasks&quot;</span>
+              <span className="px-3 py-1.5 bg-pink-100 text-pink-600 rounded-full">&quot;Mark the meeting task as done&quot;</span>
+            </div>
           </div>
         )}
 
@@ -112,16 +111,16 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
             }`}
           >
             <div
-              className={`max-w-[80%] rounded-lg px-4 py-2 ${
+              className={`max-w-[80%] rounded-2xl px-4 py-2.5 text-sm ${
                 message.role === "user"
-                  ? "bg-blue-600 text-white"
-                  : "bg-gray-100 text-gray-900"
+                  ? "bg-pink-400 text-white rounded-br-sm"
+                  : "bg-green-50 text-gray-800 rounded-bl-sm border border-green-100"
               }`}
             >
-              <p className="whitespace-pre-wrap">{message.content}</p>
+              <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
               {message.tool_calls && message.tool_calls.length > 0 && (
-                <div className="mt-2 pt-2 border-t border-gray-300">
-                  <p className="text-xs opacity-75">
+                <div className="mt-2 pt-2 border-t border-pink-200">
+                  <p className="text-xs opacity-70">
                     Used: {message.tool_calls.map((t) => t.tool).join(", ")}
                   </p>
                 </div>
@@ -132,11 +131,11 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
 
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 rounded-lg px-4 py-2">
-              <div className="flex space-x-2">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-100" />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce delay-200" />
+            <div className="bg-green-50 border border-green-100 rounded-2xl rounded-bl-sm px-4 py-3">
+              <div className="flex space-x-1.5">
+                <div className="w-2 h-2 bg-pink-300 rounded-full animate-bounce" />
+                <div className="w-2 h-2 bg-pink-300 rounded-full animate-bounce delay-100" />
+                <div className="w-2 h-2 bg-pink-300 rounded-full animate-bounce delay-200" />
               </div>
             </div>
           </div>
@@ -146,20 +145,20 @@ export function ChatInterface({ userId }: ChatInterfaceProps) {
       </div>
 
       {/* Input Area */}
-      <form onSubmit={handleSubmit} className="border-t border-gray-200 p-4 bg-gray-50">
+      <form onSubmit={handleSubmit} className="border-t border-pink-100 p-4 bg-pink-50">
         <div className="flex space-x-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Type your message..."
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            placeholder="Ask me anything about your tasks..."
+            className="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-transparent bg-white text-gray-800 placeholder-gray-300 text-sm"
             disabled={isLoading}
           />
           <button
             type="submit"
             disabled={isLoading || !input.trim()}
-            className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="px-5 py-2.5 bg-pink-400 text-white rounded-xl hover:bg-pink-500 disabled:opacity-40 disabled:cursor-not-allowed transition-colors font-medium text-sm"
           >
             Send
           </button>

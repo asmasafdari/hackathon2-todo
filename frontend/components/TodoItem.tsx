@@ -4,10 +4,10 @@ import { useState } from "react";
 import { Todo } from "@/types/todo";
 
 const PRIORITY_STYLES: Record<string, string> = {
-  low: "bg-gray-100 text-gray-600",
-  medium: "bg-blue-100 text-blue-700",
-  high: "bg-orange-100 text-orange-700",
-  urgent: "bg-red-100 text-red-700",
+  low: "bg-yellow-100 text-yellow-700",
+  medium: "bg-green-100 text-green-700",
+  high: "bg-pink-100 text-pink-700",
+  urgent: "bg-red-100 text-red-600",
 };
 
 interface TodoItemProps {
@@ -48,32 +48,32 @@ export default function TodoItem({
 
   if (isEditing) {
     return (
-      <li className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+      <li className="bg-white border border-pink-100 rounded-2xl p-4 shadow-sm">
         <div className="space-y-3">
           <input
             type="text"
             value={editTitle}
             onChange={(e) => setEditTitle(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-gray-800"
             placeholder="Title"
           />
           <textarea
             value={editDescription}
             onChange={(e) => setEditDescription(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-pink-300 text-gray-800 resize-none"
             placeholder="Description (optional)"
             rows={2}
           />
           <div className="flex gap-2">
             <button
               onClick={handleSave}
-              className="px-3 py-1 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
+              className="px-3 py-1.5 bg-green-400 text-white rounded-lg hover:bg-green-500 text-sm font-medium transition-colors"
             >
               Save
             </button>
             <button
               onClick={handleCancel}
-              className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 text-sm"
+              className="px-3 py-1.5 bg-gray-100 text-gray-600 rounded-lg hover:bg-gray-200 text-sm font-medium transition-colors"
             >
               Cancel
             </button>
@@ -84,39 +84,39 @@ export default function TodoItem({
   }
 
   return (
-    <li className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm flex items-start gap-3">
+    <li className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm flex items-start gap-3 hover:border-pink-100 transition-colors">
       <input
         type="checkbox"
         checked={todo.completed}
         onChange={() => onToggle(todo.id)}
-        className="mt-1 h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+        className="mt-1 h-4 w-4 rounded border-gray-300 text-pink-400 focus:ring-pink-300 cursor-pointer"
       />
       <div className="flex-1 min-w-0">
         <h3
-          className={`text-lg font-medium ${
-            todo.completed ? "line-through text-gray-400" : "text-gray-900"
+          className={`text-base font-medium ${
+            todo.completed ? "line-through text-gray-300" : "text-gray-800"
           }`}
         >
           {todo.title}
         </h3>
         {todo.priority && (
-          <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-xs font-medium ${PRIORITY_STYLES[todo.priority]}`}>
+          <span className={`inline-block mt-1.5 px-2 py-0.5 rounded-full text-xs font-medium ${PRIORITY_STYLES[todo.priority]}`}>
             {todo.priority}
           </span>
         )}
         {todo.description && (
           <p
-            className={`mt-1 text-sm ${
-              todo.completed ? "text-gray-400" : "text-gray-600"
+            className={`mt-1 text-sm leading-relaxed ${
+              todo.completed ? "text-gray-300" : "text-gray-500"
             }`}
           >
             {todo.description}
           </p>
         )}
         {todo.tags && todo.tags.length > 0 && (
-          <div className="mt-1 flex flex-wrap gap-1">
+          <div className="mt-2 flex flex-wrap gap-1">
             {todo.tags.map((tag) => (
-              <span key={tag} className="inline-block px-2 py-0.5 bg-gray-100 text-gray-600 text-xs rounded-full">
+              <span key={tag} className="inline-block px-2 py-0.5 bg-yellow-100 text-yellow-700 text-xs rounded-full">
                 {tag}
               </span>
             ))}
@@ -124,17 +124,17 @@ export default function TodoItem({
         )}
         {todo.due_date && (
           <p className={`mt-1 text-xs font-medium ${
-            !todo.completed && new Date(todo.due_date) < new Date() ? "text-red-500" : "text-gray-400"
+            !todo.completed && new Date(todo.due_date) < new Date() ? "text-red-400" : "text-gray-400"
           }`}>
             Due: {new Date(todo.due_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
           </p>
         )}
-        <p className="mt-2 text-xs text-gray-400">Created: {formattedDate}</p>
+        <p className="mt-2 text-xs text-gray-300">Created {formattedDate}</p>
       </div>
       <div className="flex gap-2">
         <button
           onClick={() => setIsEditing(true)}
-          className="text-gray-400 hover:text-blue-600 text-sm"
+          className="text-gray-300 hover:text-green-500 text-sm transition-colors"
         >
           Edit
         </button>
@@ -144,7 +144,7 @@ export default function TodoItem({
               onDelete(todo.id);
             }
           }}
-          className="text-gray-400 hover:text-red-600 text-sm"
+          className="text-gray-300 hover:text-pink-500 text-sm transition-colors"
         >
           Delete
         </button>

@@ -6,8 +6,8 @@ import "./globals.css";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Todo AI Chatbot",
-  description: "AI-powered chatbot for managing your todos",
+  title: "Tidylist AI",
+  description: "Chat with AI to manage your tasks naturally.",
 };
 
 export default function RootLayout({
@@ -19,8 +19,11 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body className="antialiased">
-          <nav className="bg-white shadow-sm border-b border-gray-200 px-6 py-3 flex justify-between items-center">
-            <h1 className="text-lg font-semibold text-gray-900">Todo AI Assistant</h1>
+          <nav className="bg-white border-b border-pink-100 px-6 py-4 flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <span className="text-pink-400 text-lg">✦</span>
+              <h1 className="text-lg font-semibold text-gray-800 tracking-tight">Tidylist AI</h1>
+            </div>
             <NavAuth />
           </nav>
           {children}
